@@ -48,7 +48,10 @@ plot_themes = {
     'genre_sunburst': 'dark',
     'country_genre_pie': 'dark',
     'choropleth_map': 'dark',
-    'top10_movies': 'dark'
+    'top10_movies': 'dark',
+    'company_donut': 'dark',
+    'company_genre': 'dark',
+    'company_sankey': 'dark'
 }
 
 def get_current_theme():
@@ -186,7 +189,7 @@ def create_genre_treemap(df):
             values='revenue',
             title='Total Revenue Share by Genre',
             color='revenue',
-            color_continuous_scale='viridis'
+            color_continuous_scale='sunset'
         )
         fig.update_layout(
             paper_bgcolor=get_plot_theme('genre_treemap')['paper_bgcolor'],
@@ -462,6 +465,381 @@ def create_top10_movies_plot(df, country='United States of America', feature='re
         return fig
     except Exception as e:
         return px.bar(title="Error creating plot")
+
+def create_company_donut_chart(df):
+    """Create improved production company donut chart"""
+    try:
+        # Preprocess data
+        df_processed = df.copy()
+        df_processed = df_processed[df_processed['title'] != 'IPL 2025']
+        df_processed = df_processed.dropna(subset=['production_companies'])
+        
+        df_processed['production_companies'] = df_processed['production_companies'].str.split(',\s*')
+        df_processed = df_processed.explode('production_companies')
+        df_processed['production_companies'] = df_processed['production_companies'].str.strip()
+        
+        top8_companies = (
+            df_processed.groupby('production_companies')
+            .size()
+            .sort_values(ascending=False)
+            .head(8)
+            .reset_index(name='movie_count')
+        )
+        
+        fig = px.pie(
+            top8_companies,
+            names='production_companies',
+            values='movie_count',
+            hole=0.5,
+            color_discrete_sequence=px.colors.sequential.Inferno_r,
+        )
+        
+        fig.update_traces(
+            textinfo='none',
+            hovertemplate='<b>%{label}</b><br>Movies: %{value}<extra></extra>',
+            pull=[0.05]*len(top8_companies)
+        )
+        
+        fig.update_layout(
+            title={
+                'text': 'Top 8 Production Companies by Movie Count',
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': dict(size=20, family="Arial", color=get_plot_theme('company_donut')['font_color'])
+            },
+            showlegend=True,
+            margin=dict(t=50, b=20, l=20, r=20),
+            annotations=[dict(
+                text='Movies', 
+                x=0.5, 
+                y=0.5, 
+                font_size=18, 
+                showarrow=False,
+                font_color=get_plot_theme('company_donut')['font_color']
+            )],
+            paper_bgcolor=get_plot_theme('company_donut')['paper_bgcolor'],
+            plot_bgcolor=get_plot_theme('company_donut')['plot_bgcolor'],
+            font_color=get_plot_theme('company_donut')['font_color'],
+            legend=dict(font=dict(size=12, color=get_plot_theme('company_donut')['font_color']), orientation="v", y=0.5),
+            height=500
+        )
+        
+        return fig
+    except:
+        return px.pie(title="Error creating donut chart")
+
+def create_company_genre_chart(df, selected_company=None):
+    """Create improved genre breakdown chart for selected company"""
+    try:
+        if not selected_company:
+            empty_df = pd.DataFrame({'genres': [], 'movie_count': []})
+            fig = px.bar(
+                empty_df,
+                x='movie_count',
+                y='genres',
+                orientation='h',
+                title="Click a production company to see genre breakdown"
+            )
+            fig.update_layout(
+                paper_bgcolor=get_plot_theme('company_genre')['paper_bgcolor'],
+                plot_bgcolor=get_plot_theme('company_genre')['plot_bgcolor'],
+                font_color=get_plot_theme('company_genre')['font_color'],
+                title=dict(x=0.5, font=dict(size=18, color=get_plot_theme('company_genre')['font_color'])),
+                height=500
+            )
+            fig.add_annotation(
+                text="Click on a company in the donut chart to view genre stats.",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=14, color=get_plot_theme('company_genre')['font_color'])
+            )
+            return fig
+        
+        # Preprocess data
+        df_processed = df.copy()
+        df_processed = df_processed[df_processed['title'] != 'IPL 2025']
+        df_processed = df_processed.dropna(subset=['production_companies', 'genres'])
+        
+        df_processed['production_companies'] = df_processed['production_companies'].str.split(',\s*')
+        df_processed['genres'] = df_processed['genres'].str.split(',\s*')
+        df_processed = df_processed.explode('production_companies')
+        df_processed = df_processed.explode('genres')
+        df_processed['production_companies'] = df_processed['production_companies'].str.strip()
+        df_processed['genres'] = df_processed['genres'].str.strip()
+        
+        filtered = df_processed[df_processed['production_companies'] == selected_company]
+        genre_counts = (
+            filtered.groupby('genres')
+            .size()
+            .sort_values(ascending=False)
+            .head(10)
+            .reset_index(name='movie_count')
+        )
+        
+        if genre_counts.empty:
+            fig = px.bar(title=f"No genre data available for {selected_company}")
+            fig.update_layout(
+                paper_bgcolor=get_plot_theme('company_genre')['paper_bgcolor'],
+                plot_bgcolor=get_plot_theme('company_genre')['plot_bgcolor'],
+                font_color=get_plot_theme('company_genre')['font_color']
+            )
+            return fig
+        
+        fig = px.bar(
+            genre_counts,
+            x='movie_count',
+            y='genres',
+            orientation='h',
+            title=f"Top Genres for {selected_company}",
+            color='movie_count',
+            color_continuous_scale='Inferno'
+        )
+        
+        fig.update_layout(
+            yaxis=dict(categoryorder='total ascending', title=''),
+            xaxis=dict(title='Movies'),
+            title=dict(x=0.5, font=dict(size=18, color=get_plot_theme('company_genre')['font_color'])),
+            margin=dict(t=60, b=40, l=60, r=20),
+            paper_bgcolor=get_plot_theme('company_genre')['paper_bgcolor'],
+            plot_bgcolor=get_plot_theme('company_genre')['plot_bgcolor'],
+            font=dict(family="Arial", size=12, color=get_plot_theme('company_genre')['font_color']),
+            height=500
+        )
+        
+        return fig
+    except:
+        return px.bar(title="Error creating genre chart")
+
+def create_company_sankey_chart(df, selected_company=None):
+    """Create Sankey diagram for company's decade-wise genre targeting"""
+    try:
+        if not selected_company:
+            empty_fig = go.Figure()
+            empty_fig.update_layout(
+                title="Click a production company to see decade-wise genre flow",
+                paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+                font_color=get_plot_theme('company_sankey')['font_color'],
+                height=500
+            )
+            empty_fig.add_annotation(
+                text="Select a company from the donut chart to view genre evolution across decades.",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=14, color=get_plot_theme('company_sankey')['font_color'])
+            )
+            return empty_fig
+        
+        # Company alias mappings
+        company_aliases = {
+            'Universal Pictures': ['Universal Pictures', 'Universal Studios', 'Universal Entertainment'],
+            'Paramount Pictures': ['Paramount Pictures', 'Paramount', 'Paramount Studios'],
+            'Warner Bros. Pictures': ['Warner Bros.', 'Warner Brothers', 'Warner Bros. Pictures', 'Warner Bros. Entertainment'],
+            'Walt Disney Studios': ['Walt Disney Pictures', 'Disney', 'Walt Disney Studios', 'Walt Disney Productions'],
+            'Sony Pictures': ['Sony Pictures', 'Columbia Pictures', 'Sony Pictures Entertainment', 'TriStar Pictures'],
+            'Lionsgate': ['Lionsgate', 'Lions Gate Entertainment', 'Lionsgate Films'],
+            '20th Century Studios': ['20th Century Fox', '20th Century Studios', 'Twentieth Century Fox'],
+            'DreamWorks Studios': ['DreamWorks', 'DreamWorks Pictures', 'DreamWorks Studios'],
+            'Amazon MGM Studios': ['MGM', 'Metro-Goldwyn-Mayer', 'Amazon Studios', 'Amazon MGM Studios'],
+            'Marvel Studios': ['Marvel Studios', 'Marvel Entertainment', 'Marvel'],
+            'Pixar Animation': ['Pixar', 'Pixar Animation Studios']
+        }
+        
+        # Get aliases for selected company
+        aliases = company_aliases.get(selected_company, [selected_company])
+        
+        # Favorite genres to focus on
+        fav_genres = ['Comedy', 'Action', 'Thriller', 'Drama', 'Romance']
+        
+        # Preprocess data
+        df_processed = df.copy()
+        df_processed = df_processed[df_processed['title'] != 'IPL 2025']
+        df_processed = df_processed.dropna(subset=['production_companies', 'genres'])
+        
+        # Convert release_date to datetime and extract year
+        df_processed['release_date'] = pd.to_datetime(df_processed['release_date'], errors='coerce')
+        df_processed['year'] = df_processed['release_date'].dt.year
+        df_processed = df_processed.dropna(subset=['year'])
+        
+        # Filter data to only include movies from 1980 onwards
+        df_processed = df_processed[df_processed['year'] >= 1980]
+        
+        # Explode production companies first
+        df_processed['production_companies'] = df_processed['production_companies'].str.split(',\s*')
+        df_processed = df_processed.explode('production_companies')
+        df_processed['production_companies'] = df_processed['production_companies'].str.strip()
+        
+        # Filter by selected company or its aliases
+        df_filtered = df_processed[df_processed['production_companies'].isin(aliases)].copy()
+        
+        if df_filtered.empty:
+            empty_fig = go.Figure()
+            empty_fig.update_layout(
+                title=f"No data available for {selected_company}",
+                paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+                font_color=get_plot_theme('company_sankey')['font_color'],
+                height=500
+            )
+            return empty_fig
+
+        # Process genres and decades
+        df_filtered['decade'] = (df_filtered['year'].astype(int) // 10) * 10
+        df_filtered['genres'] = df_filtered['genres'].str.split(',')
+        df_exploded = df_filtered.explode('genres')
+        df_exploded['genres'] = df_exploded['genres'].str.strip()
+        df_exploded = df_exploded[df_exploded['genres'].isin(fav_genres)]
+        
+        if df_exploded.empty:
+            empty_fig = go.Figure()
+            empty_fig.update_layout(
+                title=f"No genre data available for {selected_company}",
+                paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+                font_color=get_plot_theme('company_sankey')['font_color'],
+                height=500
+            )
+            return empty_fig
+
+        grouped = df_exploded.groupby(['genres', 'decade']).size().reset_index(name='count')
+        
+        if grouped.empty:
+            empty_fig = go.Figure()
+            empty_fig.update_layout(
+                title=f"No sufficient data for {selected_company}",
+                paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+                font_color=get_plot_theme('company_sankey')['font_color'],
+                height=500
+            )
+            return empty_fig
+
+        decade_list = sorted(df_exploded['decade'].unique())
+        genre_list = sorted(df_exploded['genres'].unique())
+
+        decade_label_map = {decade: f"{decade}s ({decade}–{decade+9})" for decade in decade_list}
+        all_nodes = genre_list + [decade_label_map[d] for d in decade_list]
+        label_to_index = {label: idx for idx, label in enumerate(all_nodes)}
+
+        source, target, value = [], [], []
+        for _, row in grouped.iterrows():
+            genre = row['genres']
+            decade_label = decade_label_map[row['decade']]
+            source.append(label_to_index[genre])
+            target.append(label_to_index[decade_label])
+            value.append(row['count'])
+
+        # Create color scheme for nodes
+        node_colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'] * (len(all_nodes) // 5 + 1)
+        node_colors = node_colors[:len(all_nodes)]
+
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=all_nodes,
+                color=node_colors
+            ),
+            link=dict(
+                source=source,
+                target=target,
+                value=value,
+                color='rgba(255,255,255,0.2)' if get_plot_theme('company_sankey')['paper_bgcolor'] == '#2d2d2d' else 'rgba(0,0,0,0.2)'
+            )
+        )])
+
+        fig.update_layout(
+            title=dict(
+                text=f"{selected_company}'s Decade-wise Genre Targeting",
+                x=0.5,
+                xanchor='center',
+                font=dict(size=18, family="Arial", color=get_plot_theme('company_sankey')['font_color'])
+            ),
+            paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+            plot_bgcolor=get_plot_theme('company_sankey')['plot_bgcolor'],
+            font=dict(family="Arial", size=12, color=get_plot_theme('company_sankey')['font_color']),
+            height=500,
+            margin=dict(t=60, b=40, l=40, r=40)
+        )
+        
+        return fig
+    except Exception as e:
+        error_fig = go.Figure()
+        error_fig.update_layout(
+            title="Error creating Sankey diagram",
+            paper_bgcolor=get_plot_theme('company_sankey')['paper_bgcolor'],
+            font_color=get_plot_theme('company_sankey')['font_color'],
+            height=500
+        )
+        return error_fig
+
+
+
+# Custom CSS for dropdown visibility
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            /* Custom styling for country dropdown */
+            .country-dropdown .Select-control {
+                background-color: white !important;
+                border: 1px solid #ccc !important;
+            }
+            .country-dropdown .Select-value-label {
+                color: #333 !important;
+                font-weight: 500 !important;
+            }
+            .country-dropdown .Select-placeholder {
+                color: #666 !important;
+            }
+            .country-dropdown .Select-menu-outer {
+                background-color: white !important;
+                border: 1px solid #ccc !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            }
+            .country-dropdown .Select-option {
+                background-color: white !important;
+                color: #333 !important;
+                padding: 8px 12px !important;
+                border-bottom: 1px solid #f0f0f0 !important;
+            }
+            .country-dropdown .Select-option:hover {
+                background-color: #f5f5f5 !important;
+                color: #000 !important;
+            }
+            .country-dropdown .Select-option.is-selected {
+                background-color: #007bff !important;
+                color: white !important;
+            }
+            .country-dropdown .Select-arrow-zone {
+                color: #666 !important;
+            }
+            
+            /* Alternative styling for Dash 2.x dropdowns */
+            .country-dropdown .dash-dropdown .Select-control {
+                background-color: white !important;
+                color: #333 !important;
+            }
+            .country-dropdown .dash-dropdown .Select-value {
+                color: #333 !important;
+            }
+            .country-dropdown .dash-dropdown .Select-input > input {
+                color: #333 !important;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
 
 # App layout
 app.layout = html.Div([
@@ -866,6 +1244,16 @@ def update_content(selected_tab, theme_clicks):
                     create_plot_toggle_button('budget_revenue_bar'),
                     dcc.Graph(id='budget-revenue-bar', figure=create_budget_revenue_bar(df))
                 ], style={'position': 'relative', 'marginBottom': '20px'})
+            ])
+        ])
+    elif selected_tab_name == 'genre':
+        return html.Div([
+            html.H2("🎭 Genre Analysis", style={'color': theme['color']}),
+            html.Div([
+                html.Div([
+                    create_plot_toggle_button('genre_treemap'),
+                    dcc.Graph(id='genre-treemap', figure=create_genre_treemap(df))
+                ], style={'position': 'relative', 'marginBottom': '20px'})
             ]),
             html.Div([
                 html.Div([
@@ -873,12 +1261,6 @@ def update_content(selected_tab, theme_clicks):
                     dcc.Graph(id='genre-sunburst', figure=create_genre_sunburst(df))
                 ], style={'position': 'relative', 'marginBottom': '20px'})
             ])
-        ])
-    elif selected_tab_name == 'genre':
-        return html.Div([
-            html.H2("🎭 Genre Analysis", style={'color': theme['color']}),
-            html.P("Additional genre-specific analysis will be added here", 
-                  style={'color': theme['color']})
         ])
     elif selected_tab_name == 'country':
         popup_bg = '#2d2d2d' if current_theme == 'dark' else '#f8f9fa'
@@ -955,9 +1337,10 @@ def update_content(selected_tab, theme_clicks):
                                 value='United States of America',
                                 style={
                                     'marginBottom': '10px',
-                                    'backgroundColor': '#2d2d2d' if current_theme == 'dark' else '#ffffff',
-                                    'color': '#ffffff' if current_theme == 'dark' else '#000000'
-                                }
+                                    'color': '#000000'  # Always use black text for better visibility
+                                },
+                                # Add custom CSS classes for better styling
+                                className='country-dropdown'
                             )
                         ], style={'marginBottom': '15px'}),
                         
@@ -1021,9 +1404,65 @@ def update_content(selected_tab, theme_clicks):
         ])
     elif selected_tab_name == 'company':
         return html.Div([
-            html.H2("🏢 Company Analysis", style={'color': theme['color']}),
-            html.P("Company analysis plots will be added here", 
-                  style={'color': theme['color']})
+            html.H1(
+                "🏢 Production Company → Genre Breakdown",
+                style={
+                    "textAlign": "center", 
+                    "marginTop": "20px", 
+                    "marginBottom": "40px", 
+                    "fontFamily": "Arial", 
+                    "fontSize": "28px",
+                    "color": theme['color']
+                }
+            ),
+            
+            html.Div([
+                # Donut chart on the left
+                html.Div([
+                    html.Div([
+                        create_plot_toggle_button('company_donut'),
+                        dcc.Graph(
+                            id='company-donut-chart', 
+                            figure=create_company_donut_chart(df), 
+                            config={'displayModeBar': False}
+                        )
+                    ], style={'position': 'relative'})
+                ], style={"width": "48%", "display": "inline-block", "verticalAlign": "top"}),
+
+                # Genre chart on the right
+                html.Div([
+                    html.Div([
+                        create_plot_toggle_button('company_genre'),
+                        dcc.Graph(
+                            id='company-genre-chart', 
+                            figure=create_company_genre_chart(df), 
+                            config={'displayModeBar': False}
+                        )
+                    ], style={'position': 'relative'})
+                ], style={"width": "48%", "display": "inline-block", "verticalAlign": "top", "marginLeft": "4%"}),
+            ], style={"backgroundColor": theme['backgroundColor'], "padding": "0px 20px", "marginBottom": "40px"}),
+            
+            # Sankey diagram section
+            html.Div([
+                html.H2(
+                    "📊 Decade-wise Genre Evolution", 
+                    style={
+                        "textAlign": "center", 
+                        "marginBottom": "20px", 
+                        "fontFamily": "Arial", 
+                        "fontSize": "22px",
+                        "color": theme['color']
+                    }
+                ),
+                html.Div([
+                    create_plot_toggle_button('company_sankey'),
+                    dcc.Graph(
+                        id='company-sankey-chart', 
+                        figure=create_company_sankey_chart(df), 
+                        config={'displayModeBar': False}
+                    )
+                ], style={'position': 'relative'})
+            ], style={"backgroundColor": theme['backgroundColor'], "padding": "0px 20px"})
         ])
     return html.Div("Select a tab")
 
@@ -1148,6 +1587,63 @@ def update_genre_popup(clickData, close_clicks, current_style):
     except Exception as e:
         current_style['display'] = 'none'
         return px.bar(title=""), current_style
+
+# Company analysis callback
+@callback(
+    Output('company-genre-chart', 'figure'),
+    Input('company-donut-chart', 'clickData'),
+    Input('company_genre-theme-toggle', 'n_clicks'),
+    prevent_initial_call=False
+)
+def update_company_genre_chart(clickData, theme_clicks):
+    if not clickData:
+        return create_company_genre_chart(df, None)
+    
+    selected_company = clickData['points'][0]['label']
+    return create_company_genre_chart(df, selected_company)
+
+# Sankey chart callback for company selection
+@callback(
+    Output('company-sankey-chart', 'figure'),
+    Input('company-donut-chart', 'clickData'),
+    Input('company_sankey-theme-toggle', 'n_clicks'),
+    prevent_initial_call=False
+)
+def update_company_sankey_chart(clickData, theme_clicks):
+    if not clickData:
+        return create_company_sankey_chart(df, None)
+    
+    selected_company = clickData['points'][0]['label']
+    return create_company_sankey_chart(df, selected_company)
+
+# Theme toggle callback for Sankey chart
+@callback(
+    Output('company_sankey-theme-toggle', 'children'),
+    Output('company_sankey-theme-toggle', 'style'),
+    Input('company_sankey-theme-toggle', 'n_clicks'),
+    prevent_initial_call=True
+)
+def toggle_company_sankey_theme(n_clicks):
+    global plot_themes
+    if n_clicks > 0:
+        plot_themes['company_sankey'] = 'light' if plot_themes['company_sankey'] == 'dark' else 'dark'
+    
+    icon = "☀️" if plot_themes['company_sankey'] == 'dark' else "🌙"
+    button_style = {
+        'position': 'absolute',
+        'top': '10px',
+        'right': '10px',
+        'fontSize': '16px',
+        'border': '1px solid #ccc',
+        'borderRadius': '50%',
+        'width': '30px',
+        'height': '30px',
+        'backgroundColor': '#2d2d2d' if plot_themes['company_sankey'] == 'dark' else '#f0f0f0',
+        'color': '#ffffff' if plot_themes['company_sankey'] == 'dark' else '#000000',
+        'cursor': 'pointer',
+        'zIndex': 5
+    }
+    return icon, button_style
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=8050)
