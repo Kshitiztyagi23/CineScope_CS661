@@ -320,20 +320,11 @@ app.layout = html.Div([
 )
 def update_controls(selected_tab):
     if selected_tab == 'genre':
-        return html.Div([
-            html.Label("Select Genre:"),
-            html.P("Genre selection will be added here")
-        ])
+        return html.Div([ ])
     elif selected_tab == 'country':
-        return html.Div([
-            html.Label("Select Country:"),
-            html.P("Country selection will be added here")
-        ])
+        return html.Div([])
     elif selected_tab == 'company':
-        return html.Div([
-            html.Label("Select Company:"),
-            html.P("Company selection will be added here")
-        ])
+        return html.Div([  ])
     return html.Div()
 
 @callback(
@@ -404,9 +395,9 @@ def update_content(selected_tab):
                 html.Div([
                     dcc.Graph(figure=create_country_genre_pie(df))
                 ], style={'width': '50%', 'display': 'inline-block'}),
-                html.Div([
-                    dcc.Graph(figure=create_genre_treemap(df))
-                ], style={'width': '50%', 'display': 'inline-block'})
+                # html.Div([
+                #     dcc.Graph(figure=create_genre_treemap(df))
+                # ], style={'width': '50%', 'display': 'inline-block'})
             ])
         ])
     elif selected_tab == 'company':
