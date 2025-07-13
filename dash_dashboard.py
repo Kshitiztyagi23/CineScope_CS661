@@ -197,8 +197,12 @@ def create_country_genre_pie(df, genre=None):
     except:
         return {}
 
+# Global variables for choropleth data
+choropleth_data = {}
+
 def create_choropleth_map(df):
     """Interactive global movie production choropleth"""
+    global choropleth_data
     try:
         # Preprocess data
         df1 = df.copy()
@@ -236,10 +240,17 @@ def create_choropleth_map(df):
                 return None
         
         # Summary tables
+        country_genre = df1.groupby(['production_countries', 'genres']).size().reset_index(name='count')
         summary = df1.groupby('production_countries').agg(movie_count=('title', 'count')).reset_index()
         summary['iso_alpha'] = summary['production_countries'].apply(get_iso_alpha3_enhanced)
         summary = summary.dropna(subset=['iso_alpha'])
         summary['log_movie_count'] = np.log10(summary['movie_count'] + 1)
+        
+        # Store data globally for callback access
+        choropleth_data = {
+            'summary': summary,
+            'country_genre': country_genre
+        }
         
         fig = px.choropleth(
             summary,
@@ -248,12 +259,12 @@ def create_choropleth_map(df):
             hover_name="production_countries",
             color_continuous_scale="plasma",
             labels={'log_movie_count': 'Log₁₀(Movies + 1)'},
-            title="Global Movie Production"
+            title="Global Movie Production (Click on countries for genre breakdown)"
         )
         fig.update_traces(
             hovertemplate="<b>%{hovertext}</b><br><br>" +
-                          "🎬 Movies Produced: <b>%{customdata[0]:,}</b><br>" +
-                          "📈 Log Scale: %{z:.2f}<extra></extra>",
+                          "🎬 Movies Produced: <b>%{customdata[0]:,}</b><br>",
+                          
             customdata=summary[['movie_count']].values
         )
         fig.update_layout(
@@ -269,7 +280,7 @@ def create_choropleth_map(df):
                 tickvals=[0, 1, 2, 3, 4],
                 ticktext=["1", "10", "100", "1K", "10K"]
             ),
-            height=500
+            height=600
         )
         return fig
     except:
@@ -358,8 +369,37 @@ def update_content(selected_tab):
         return html.Div([
             html.H2("🌍 Country Analysis"),
             html.Div([
-                dcc.Graph(figure=create_choropleth_map(df))
+                dcc.Graph(id='choropleth', figure=create_choropleth_map(df))
             ], style={'marginBottom': '20px'}),
+            
+            # Popup container for genre breakdown
+            html.Div([
+                html.Button("✕", id='close-button', n_clicks=0, style={
+                    'position': 'absolute',
+                    'top': '6px',
+                    'left': '8px',
+                    'fontSize': '16px',
+                    'border': 'none',
+                    'background': 'transparent',
+                    'cursor': 'pointer',
+                    'zIndex': 20
+                }),
+                dcc.Graph(id='genre-popup', config={'displayModeBar': False}),
+            ],
+            id='popup-container',
+            style={
+                'position': 'absolute',
+                'top': '120px',
+                'right': '40px',
+                'width': '350px',
+                'backgroundColor': 'white',
+                'boxShadow': '0 4px 8px rgba(0,0,0,0.2)',
+                'padding': '10px',
+                'borderRadius': '10px',
+                'display': 'none',
+                'zIndex': 10
+            }),
+            
             html.Div([
                 html.Div([
                     dcc.Graph(figure=create_country_genre_pie(df))
@@ -375,6 +415,74 @@ def update_content(selected_tab):
             html.P("Company analysis plots will be added here")
         ])
     return html.Div("Select a tab")
+
+# Interactive choropleth callbacks
+@callback(
+    Output('genre-popup', 'figure'),
+    Output('popup-container', 'style'),
+    Input('choropleth', 'clickData'),
+    Input('close-button', 'n_clicks'),
+    State('popup-container', 'style')
+)
+def update_genre_popup(clickData, close_clicks, current_style):
+    ctx = dash.callback_context
+    global choropleth_data
+
+    if ctx.triggered and ctx.triggered[0]['prop_id'].startswith('close-button'):
+        current_style['display'] = 'none'
+        return px.bar(title=""), current_style
+
+    if not clickData or not choropleth_data:
+        current_style['display'] = 'none'
+        return px.bar(title=""), current_style
+
+    try:
+        iso = clickData['points'][0]['location']
+        summary = choropleth_data['summary']
+        country_genre = choropleth_data['country_genre']
+        
+        country = summary.loc[summary['iso_alpha'] == iso, 'production_countries'].values[0]
+
+        genre_data = (
+            country_genre[country_genre['production_countries'] == country]
+            .groupby('genres')['count']
+            .sum()
+            .reset_index()
+            .sort_values(by='count', ascending=False)
+            .head(10)
+        )
+
+        if genre_data.empty:
+            current_style['display'] = 'none'
+            return px.bar(title="No data available"), current_style
+
+        fig = px.bar(
+            genre_data,
+            x='genres',
+            y='count',
+            title=f"Top Genres in {country}",
+            color='count',
+            color_continuous_scale='Inferno'
+        )
+
+        fig.update_layout(
+            xaxis_title=None,
+            yaxis_title='Movies',
+            margin=dict(t=50, l=30, r=10, b=70),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            height=300
+        )
+        fig.update_xaxes(tickangle=45)
+
+        # Make the popup visible
+        updated_style = current_style.copy()
+        updated_style['display'] = 'block'
+
+        return fig, updated_style
+    except:
+        current_style['display'] = 'none'
+        return px.bar(title=""), current_style
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=8050)
