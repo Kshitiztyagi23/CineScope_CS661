@@ -400,14 +400,31 @@ def update_content(selected_tab):
                 'zIndex': 10
             }),
             
+            # html.Div([
+            #     html.Div([
+            #         dcc.Graph(figure=create_country_genre_pie(df))
+            #     ], style={'width': '50%', 'display': 'inline-block'}),
+            #     html.Div([
+            #         dcc.Graph(figure=create_genre_treemap(df))
+            #     ], style={'width': '50%', 'display': 'inline-block'})
+            # ])
             html.Div([
-                html.Div([
-                    dcc.Graph(figure=create_country_genre_pie(df))
-                ], style={'width': '50%', 'display': 'inline-block'}),
-                html.Div([
-                    dcc.Graph(figure=create_genre_treemap(df))
-                ], style={'width': '50%', 'display': 'inline-block'})
-            ])
+     html.Div([
+        html.Label("Select Genre:"),
+        dcc.Dropdown(
+            id='genre-selector',
+            options=[{'label': genre, 'value': genre} for genre in sorted(
+                df['genres'].dropna().str.split(',').explode().str.strip().unique())],
+            value='Action',
+            style={'width': '90%', 'marginBottom': '10px'}
+        ),
+        dcc.Graph(id='genre-country-pie')
+    ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+    html.Div([
+        dcc.Graph(figure=create_genre_treemap(df))
+    ], style={'width': '50%', 'display': 'inline-block'})
+])
+
         ])
     elif selected_tab == 'company':
         return html.Div([
@@ -424,6 +441,7 @@ def update_content(selected_tab):
     Input('close-button', 'n_clicks'),
     State('popup-container', 'style')
 )
+
 def update_genre_popup(clickData, close_clicks, current_style):
     ctx = dash.callback_context
     global choropleth_data
@@ -483,6 +501,12 @@ def update_genre_popup(clickData, close_clicks, current_style):
     except:
         current_style['display'] = 'none'
         return px.bar(title=""), current_style
+@app.callback(
+    Output('genre-country-pie', 'figure'),
+    Input('genre-selector', 'value')
+)
+def update_country_pie_chart(selected_genre):
+    return create_country_genre_pie(df, genre=selected_genre)
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=8050)
