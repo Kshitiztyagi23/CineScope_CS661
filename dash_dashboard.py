@@ -10,6 +10,19 @@ import pycountry
 app = dash.Dash(__name__)
 app.title = "Movie Data Dashboard"
 
+# Dark theme styles
+dark_theme = {
+    'backgroundColor': '#1e1e1e',
+    'color': '#ffffff',
+    'fontFamily': 'Arial, sans-serif'
+}
+
+plot_dark_theme = {
+    'paper_bgcolor': '#2d2d2d',
+    'plot_bgcolor': '#2d2d2d',
+    'font_color': '#ffffff'
+}
+
 # Load data
 try:
     df = pd.read_csv('TMDB_movie_dataset_v11.csv')
@@ -43,7 +56,12 @@ def create_correlation_heatmap(df):
             zmax=1,
             title='Interactive Correlation Heatmap'
         )
-        fig.update_layout(margin=dict(l=40, r=40, t=50, b=40))
+        fig.update_layout(
+            margin=dict(l=40, r=40, t=50, b=40),
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
+        )
         return fig
     except:
         return {}
@@ -71,6 +89,11 @@ def create_budget_revenue_bar(df):
             title='Average Revenue by Budget Range',
             color='average_revenue',
             color_continuous_scale='viridis'
+        )
+        fig.update_layout(
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
         )
         return fig
     except:
@@ -101,6 +124,11 @@ def create_genre_treemap(df):
             color='revenue',
             color_continuous_scale='viridis'
         )
+        fig.update_layout(
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
+        )
         return fig
     except:
         return {}
@@ -120,6 +148,11 @@ def create_budget_revenue_scatter(df):
         )
         fig.update_xaxes(type="log")
         fig.update_yaxes(type="log")
+        fig.update_layout(
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
+        )
         return fig
     except:
         return {}
@@ -149,6 +182,11 @@ def create_genre_sunburst(df):
             title='Year-wise Genre Evolution (2020-2023)',
             color='count',
             color_continuous_scale='viridis'
+        )
+        fig.update_layout(
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
         )
         return fig
     except:
@@ -193,6 +231,11 @@ def create_country_genre_pie(df, genre=None):
             color_discrete_sequence=px.colors.sequential.Viridis
         )
         fig.update_traces(textposition='inside', textinfo='percent+label')
+        fig.update_layout(
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            plot_bgcolor=plot_dark_theme['plot_bgcolor'],
+            font_color=plot_dark_theme['font_color']
+        )
         return fig
     except:
         return {}
@@ -263,8 +306,8 @@ def create_choropleth_map(df):
         )
         fig.update_traces(
             hovertemplate="<b>%{hovertext}</b><br><br>" +
-                          "🎬 Movies Produced: <b>%{customdata[0]:,}</b><br>",
-                          
+                          "🎬 Movies Produced: <b>%{customdata[0]:,}</b><br>" +
+                          "📈 Log Scale: %{z:.2f}<extra></extra>",
             customdata=summary[['movie_count']].values
         )
         fig.update_layout(
@@ -272,7 +315,8 @@ def create_choropleth_map(df):
                 showframe=False,
                 showcoastlines=True,
                 projection_type='natural earth',
-                landcolor="rgb(243,243,243)"
+                landcolor="rgb(50,50,50)",
+                bgcolor=plot_dark_theme['paper_bgcolor']
             ),
             margin=dict(t=60, b=20, l=10, r=10),
             coloraxis_colorbar=dict(
@@ -280,7 +324,9 @@ def create_choropleth_map(df):
                 tickvals=[0, 1, 2, 3, 4],
                 ticktext=["1", "10", "100", "1K", "10K"]
             ),
-            height=600
+            height=600,
+            paper_bgcolor=plot_dark_theme['paper_bgcolor'],
+            font_color=plot_dark_theme['font_color']
         )
         return fig
     except:
@@ -288,54 +334,85 @@ def create_choropleth_map(df):
 
 # App layout
 app.layout = html.Div([
-    html.H1("🎬 Movie Data Dashboard", style={'textAlign': 'center', 'marginBottom': '30px'}),
+    html.H1("🎬 Movie Data Dashboard", 
+            style={
+                'textAlign': 'center', 
+                'marginBottom': '30px',
+                'color': dark_theme['color']
+            }),
     
     html.Div([
-        html.H3(f"Total Movies: {len(df)}", style={'textAlign': 'center'})
+        html.H3(f"Total Movies: {len(df)}", 
+               style={
+                   'textAlign': 'center',
+                   'color': dark_theme['color']
+               })
     ], style={'marginBottom': '30px'}),
     
     html.Div([
-        html.Label("Select Tab:"),
-        dcc.Dropdown(
-            id='tab-selector',
-            options=[
-                {'label': '📊 Overview', 'value': 'overview'},
-                {'label': '🎭 Genre Analysis', 'value': 'genre'},
-                {'label': '🌍 Country Analysis', 'value': 'country'},
-                {'label': '🏢 Company Analysis', 'value': 'company'}
-            ],
-            value='overview',
-            style={'width': '300px'}
-        )
+        html.Label("Select Tab:", 
+                  style={
+                      'color': dark_theme['color'],
+                      'fontSize': '16px',
+                      'marginBottom': '10px',
+                      'display': 'block'
+                  }),
+        html.Div([
+            dcc.Slider(
+                id='tab-slider',
+                min=0,
+                max=3,
+                step=1,
+                value=0,
+                marks={
+                    0: {'label': '📊 Overview', 'style': {'color': '#ffffff'}},
+                    1: {'label': '🎭 Genre Analysis', 'style': {'color': '#ffffff'}},
+                    2: {'label': '🌍 Country Analysis', 'style': {'color': '#ffffff'}},
+                    3: {'label': '🏢 Company Analysis', 'style': {'color': '#ffffff'}}
+                },
+                tooltip={"placement": "bottom", "always_visible": True}
+            )
+        ], style={'marginBottom': '40px', 'paddingLeft': '20px', 'paddingRight': '20px'})
     ], style={'marginBottom': '20px'}),
     
     html.Div(id='analysis-controls'),
     html.Div(id='main-content')
-])
+], style={
+    'backgroundColor': dark_theme['backgroundColor'],
+    'minHeight': '100vh',
+    'padding': '20px',
+    'fontFamily': dark_theme['fontFamily']
+})
 
 # Callbacks
 @callback(
     Output('analysis-controls', 'children'),
-    Input('tab-selector', 'value')
+    Input('tab-slider', 'value')
 )
 def update_controls(selected_tab):
-    if selected_tab == 'genre':
-        return html.Div([ ])
-    elif selected_tab == 'country':
+    tab_names = ['overview', 'genre', 'country', 'company']
+    selected_tab_name = tab_names[selected_tab] if selected_tab < len(tab_names) else 'overview'
+    
+    if selected_tab_name == 'genre':
         return html.Div([])
-    elif selected_tab == 'company':
-        return html.Div([  ])
+    elif selected_tab_name == 'country':
+        return html.Div([])
+    elif selected_tab_name == 'company':
+        return html.Div([])
     return html.Div()
 
 @callback(
     Output('main-content', 'children'),
-    [Input('tab-selector', 'value')],
+    [Input('tab-slider', 'value')],
     prevent_initial_call=False
 )
 def update_content(selected_tab):
-    if selected_tab == 'overview':
+    tab_names = ['overview', 'genre', 'country', 'company']
+    selected_tab_name = tab_names[selected_tab] if selected_tab < len(tab_names) else 'overview'
+    
+    if selected_tab_name == 'overview':
         return html.Div([
-            html.H2("📊 Overview"),
+            html.H2("📊 Overview", style={'color': dark_theme['color']}),
             html.Div([
                 html.Div([
                     dcc.Graph(figure=create_correlation_heatmap(df))
@@ -348,17 +425,18 @@ def update_content(selected_tab):
                 dcc.Graph(figure=create_genre_sunburst(df))
             ])
         ])
-    elif selected_tab == 'genre':
+    elif selected_tab_name == 'genre':
         return html.Div([
-            html.H2("🎭 Genre Analysis"),
+            html.H2("🎭 Genre Analysis", style={'color': dark_theme['color']}),
             html.Div([
                 dcc.Graph(figure=create_budget_revenue_bar(df))
             ]),
-            html.P("Additional genre-specific analysis will be added here")
+            html.P("Additional genre-specific analysis will be added here", 
+                  style={'color': dark_theme['color']})
         ])
-    elif selected_tab == 'country':
+    elif selected_tab_name == 'country':
         return html.Div([
-            html.H2("🌍 Country Analysis"),
+            html.H2("🌍 Country Analysis", style={'color': dark_theme['color']}),
             html.Div([
                 dcc.Graph(id='choropleth', figure=create_choropleth_map(df))
             ], style={'marginBottom': '20px'}),
@@ -373,7 +451,8 @@ def update_content(selected_tab):
                     'border': 'none',
                     'background': 'transparent',
                     'cursor': 'pointer',
-                    'zIndex': 20
+                    'zIndex': 20,
+                    'color': '#ffffff'
                 }),
                 dcc.Graph(id='genre-popup', config={'displayModeBar': False}),
             ],
@@ -383,12 +462,13 @@ def update_content(selected_tab):
                 'top': '120px',
                 'right': '40px',
                 'width': '350px',
-                'backgroundColor': 'white',
-                'boxShadow': '0 4px 8px rgba(0,0,0,0.2)',
+                'backgroundColor': '#2d2d2d',
+                'boxShadow': '0 4px 8px rgba(0,0,0,0.5)',
                 'padding': '10px',
                 'borderRadius': '10px',
                 'display': 'none',
-                'zIndex': 10
+                'zIndex': 10,
+                'border': '1px solid #555'
             }),
             
             html.Div([
@@ -400,10 +480,11 @@ def update_content(selected_tab):
                 # ], style={'width': '50%', 'display': 'inline-block'})
             ])
         ])
-    elif selected_tab == 'company':
+    elif selected_tab_name == 'company':
         return html.Div([
-            html.H2("🏢 Company Analysis"),
-            html.P("Company analysis plots will be added here")
+            html.H2("🏢 Company Analysis", style={'color': dark_theme['color']}),
+            html.P("Company analysis plots will be added here", 
+                  style={'color': dark_theme['color']})
         ])
     return html.Div("Select a tab")
 
@@ -460,8 +541,9 @@ def update_genre_popup(clickData, close_clicks, current_style):
             xaxis_title=None,
             yaxis_title='Movies',
             margin=dict(t=50, l=30, r=10, b=70),
-            paper_bgcolor='white',
-            plot_bgcolor='white',
+            paper_bgcolor='#2d2d2d',
+            plot_bgcolor='#2d2d2d',
+            font_color='#ffffff',
             height=300
         )
         fig.update_xaxes(tickangle=45)
