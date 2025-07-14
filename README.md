@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![CineScope Banner](https://via.placeholder.com/800x200/2c3e50/ecf0f1?text=🎬+CineScope+-+Movie+Analytics+Dashboard)
-
 ![Python](https://img.shields.io/badge/Python-3.8+-3776ab?style=for-the-badge&logo=python&logoColor=white)
 ![Dash](https://img.shields.io/badge/Dash-Plotly-119dff?style=for-the-badge&logo=plotly&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
@@ -11,10 +9,7 @@
 ![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 
 ### *🚀 Interactive Web Dashboard for Comprehensive Movie Industry Analysis*
-*Powered by TMDB Dataset • Built with Dash & Plotly • 45,000+ Movies Analyzed*
-
-[🎯 **Live Demo**](#quick-start) | [📊 **Features**](#features) | [🛠️ **Installation**](#installation) | [📖 **Documentation**](#technical-architecture)
-
+*Powered by TMDB Dataset • Built with Dash & Plotly • 900,000+ Movies Analyzed*
 </div>
 
 ---
@@ -24,7 +19,7 @@
 CineScope is a **powerful, interactive web dashboard** that transforms raw movie data into actionable insights. Built for movie industry professionals, data analysts, and cinema enthusiasts, it provides deep analytics across **genres, countries, production companies, and movie metrics** using The Movie Database (TMDB) dataset.
 
 ### 🎯 **Key Highlights**
-- ✅ **45,000+ Movies** analyzed from 1940-2023
+- ✅ **900,000+ Movies** analyzed from 1940-2023
 - ✅ **Auto-downloading dataset** - no manual setup required
 - ✅ **4 Comprehensive Analysis Tabs** with 15+ interactive visualizations
 - ✅ **Real-time filtering** and dynamic updates
@@ -131,7 +126,7 @@ The app will automatically:
 
 <div align="center">
 
-### 🎬 **Ready to explore 45,000+ movies?**
+### 🎬 **Ready to explore 900,000+ movies?**
 **Click through the sidebar tabs to start your analysis journey!**
 
 </div>
@@ -147,22 +142,12 @@ The app will automatically:
 
 <table align="center">
 <tr>
-<td align="center"><strong>📈 Records</strong><br/>45,000+ Movies</td>
+<td align="center"><strong>📈 Records</strong><br/>900,000+ Movies</td>
 <td align="center"><strong>📅 Time Range</strong><br/>1940 - 2023</td>
 <td align="center"><strong>💾 Size</strong><br/>565 MB</td>
 <td align="center"><strong>🔄 Updates</strong><br/>Automatic Download</td>
 </tr>
 </table>
-
-### 📋 **Data Attributes**
-| Category | Attributes |
-|----------|------------|
-| **🎬 Basic Info** | Title, Release Date, Runtime, Language |
-| **💰 Financial** | Budget, Revenue, ROI, Profit Margins |  
-| **⭐ Quality Metrics** | TMDB Rating, Vote Count, Popularity Score |
-| **🎭 Content** | Genres, Keywords, Taglines, Overviews |
-| **🌍 Production** | Countries, Companies, Cast, Crew |
-| **📊 Computed** | Year Categories, Genre Explosions, Performance Ratios |
 
 ### 🤖 **Smart Auto-Download System**
 ```python
@@ -174,7 +159,8 @@ The app will automatically:
 ✅ Error handling with fallback options
 ```
 
-**Source**: [Google Drive Dataset](https://drive.google.com/file/d/1_yoz0hHydQkJKt8qNMFxykHJ0UOjj1hB/view?usp=sharing)  
+**Source**: [Kaggle Dataset](https://www.kaggle.com/datasets/asaniczka/tmdb-movies-dataset-2023-930k-movies) 
+
 **Storage**: `tabs/TMDB_movie_dataset_v11.csv`
 
 ## 🛠️ Technical Architecture & Stack
@@ -333,7 +319,7 @@ available_genres = [
 
 <div align="center">
 
-### 🎯 **Actionable Intelligence from 45,000+ Movies**
+### 🎯 **Actionable Intelligence from 900,000+ Movies**
 
 </div>
 
@@ -374,60 +360,6 @@ available_genres = [
 
 ---
 
-## 🤝 Contributing & Development
-
-<div align="center">
-
-### 🚀 **Join the CineScope Community!**
-*Help us build the ultimate movie analytics platform*
-
-</div>
-
-### 💡 **How to Contribute**
-
-1. **🍴 Fork the Repository**
-   ```bash
-   git fork https://github.com/your-username/CineScope_CS661
-   ```
-
-2. **🌿 Create Feature Branch**
-   ```bash
-   git checkout -b feature/AmazingNewFeature
-   ```
-
-3. **✨ Make Your Changes**
-   - Add new visualizations
-   - Improve existing analytics
-   - Enhance UI/UX design
-   - Fix bugs or performance issues
-
-4. **📝 Commit & Push**
-   ```bash
-   git commit -m "✨ Add amazing new feature"
-   git push origin feature/AmazingNewFeature
-   ```
-
-5. **🎉 Create Pull Request**
-
-### 🎯 **Development Guidelines**
-- ✅ **Follow PEP 8** style guidelines
-- ✅ **Add comprehensive comments** for complex logic  
-- ✅ **Update documentation** for new features
-- ✅ **Test thoroughly** before submitting
-- ✅ **Include examples** for new visualizations
-
-### 🛠️ **Areas for Contribution**
-| Area | Description | Difficulty |
-|------|-------------|------------|
-| 🎨 **New Visualizations** | Add innovative chart types | ⭐⭐⭐ |
-| 🔧 **Performance Optimization** | Improve loading speeds | ⭐⭐⭐⭐ |
-| 📱 **Mobile Enhancement** | Better responsive design | ⭐⭐ |
-| 🌐 **Internationalization** | Multi-language support | ⭐⭐⭐⭐ |
-| 📊 **Advanced Analytics** | ML insights, predictions | ⭐⭐⭐⭐⭐ |
-| 🎨 **UI/UX Design** | Enhanced user experience | ⭐⭐ |
-
----
-
 ## � License & Legal
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for complete details.
@@ -437,55 +369,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - ✅ **Modification** - Adapt and customize freely  
 - ✅ **Distribution** - Share with attribution
 - ✅ **Private Use** - Use in private projects
-
----
-
-## 🙏 Acknowledgments & Credits
-
-<div align="center">
-
-### 🌟 **Special Thanks**
-
-</div>
-
-<table align="center">
-<tr>
-<td align="center">
-  <strong>🎬 TMDB</strong><br/>
-  <em>Comprehensive movie dataset</em>
-</td>
-<td align="center">
-  <strong>📊 Plotly Team</strong><br/>
-  <em>Excellent visualization library</em>
-</td>
-<td align="center">
-  <strong>🚀 Dash Community</strong><br/>
-  <em>Powerful web framework</em>
-</td>
-<td align="center">
-  <strong>👥 Contributors</strong><br/>
-  <em>Amazing community support</em>
-</td>
-</tr>
-</table>
-
----
-
-## 📞 Support & Contact
-
-<div align="center">
-
-### 🆘 **Need Help?**
-
-</div>
-
-| Issue Type | Action | Link |
-|------------|--------|------|
-| 🐛 **Bug Report** | Create detailed issue | [Report Bug](../../issues/new?template=bug_report.md) |
-| 💡 **Feature Request** | Suggest improvements | [Request Feature](../../issues/new?template=feature_request.md) |
-| ❓ **Questions** | Check existing discussions | [View Discussions](../../discussions) |
-| 📖 **Documentation** | Browse wiki & guides | [Documentation](../../wiki) |
-| 💬 **Community** | Join our chat | [Discord Server](#) |
 
 ### 🔧 **Troubleshooting Quick Guide**
 
@@ -504,23 +387,12 @@ python app.py --port 8051
 # Issue: Performance slow
 # Reduce data range in visualization functions
 ```
+## 👥 **Contributors**
 
----
-
-<div align="center">
-
-## 🎬 **Ready to Explore Cinema Data?**
-
-### **Built with ❤️ for movie data enthusiasts worldwide**
-
-[![⭐ Star this Repository](https://img.shields.io/github/stars/username/CineScope_CS661?style=social)](../../stargazers)
-[![🍴 Fork this Repository](https://img.shields.io/github/forks/username/CineScope_CS661?style=social)](../../network/members)
-[![👀 Watch for Updates](https://img.shields.io/github/watchers/username/CineScope_CS661?style=social)](../../watchers)
-
-**[🚀 Start Analyzing](#quick-start-guide)** • **[📊 View Features](#features--capabilities)** • **[🛠️ Contribute](#contributing--development)** • **[📞 Get Support](#support--contact)**
-
+| Name | Name | Name | Name |
+|------|------|------|------|
+| [Aryaman Srivastava](#) | [Aryan Deo](#) | [Harshita Awasthi](#) | [Kshitiz Tyagi](#) |
+| [Om Bhartiya](#) | [Saumitra Raaj](#) | [Swarnim Verma](#) | [Tejas Shrivastava](https://github.com/AlphaTS-01) |
 ---
 
 *CineScope v2.0 • Last Updated: July 2025 • Made with Python & Dash*
-
-</div>
